@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NightShift Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Supabase JS (UMD) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2.48.0/dist/umd/supabase.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-circle">NS</div>
+        <div class="logo-text">
+          <span class="logo-title">NightShift</span>
+          <span class="logo-subtitle">Hotel Console</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-view="overview">
+          <span class="nav-dot"></span>
+          Overview
+        </button>
+        <button class="nav-link" data-view="reservations">
+          <span class="nav-dot"></span>
+          Reservations
+        </button>
+        <button class="nav-link" data-view="calls">
+          <span class="nav-dot"></span>
+          Calls & AI
+        </button>
+        <button class="nav-link" data-view="settings">
+          <span class="nav-dot"></span>
+          Settings
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="hotel-meta">
+          <div class="hotel-name">Americas Best Value Inn</div>
+          <div class="hotel-location">Dayton, Tennessee</div>
+        </div>
+        <div class="badge-live">
+          <span class="badge-dot"></span>
+          Live AI Agent
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main">
+      <header class="top-bar">
+        <div class="top-left">
+          <h1 id="view-title">Overview</h1>
+          <p id="view-subtitle">Today’s performance across bookings, calls, and AI.</p>
+        </div>
+        <div class="top-right">
+          <div class="pill pill-muted" id="last-sync">Last sync: –</div>
+        </div>
+      </header>
+
+      <!-- Alert banner -->
+      <section class="banner" id="banner">
+        <div class="banner-left">
+          <div class="banner-title">Nightly reservations & call summaries</div>
+          <div class="banner-subtitle">
+            Data is coming straight from Supabase – this is your live NightShift AI console.
+          </div>
+        </div>
+        <button class="banner-btn" id="refresh-btn">Refresh data</button>
+      </section>
+
+      <!-- OVERVIEW VIEW -->
+      <section class="view view-active" id="view-overview">
+        <div class="grid-3">
+          <article class="card stat-card">
+            <div class="stat-label">Total reservations</div>
+            <div class="stat-value" id="ov-total-reservations">–</div>
+            <div class="stat-meta" id="ov-reservations-meta">Fetching…</div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="stat-label">Revenue (booked)</div>
+            <div class="stat-value" id="ov-total-revenue">$–</div>
+            <div class="stat-meta" id="ov-revenue-meta">Based on total_due</div>
+          </article>
+
+          <article class="card stat-card">
+            <div class="stat-label">AI handled calls</div>
+            <div class="stat-value" id="ov-total-calls">–</div>
+            <div class="stat-meta" id="ov-calls-meta">From call metadata table</div>
+          </article>
+        </div>
+
+        <div class="grid-2">
+          <article class="card">
+            <header class="card-header">
+              <h2>Latest reservations</h2>
+              <span class="card-pill" id="ov-last-res-count">–</span>
+            </header>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Arrival</th>
+                    <th>Nights</th>
+                    <th>Room</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+                <tbody id="ov-reservations-body">
+                  <tr><td colspan="5" class="table-empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="card">
+            <header class="card-header">
+              <h2>Latest calls</h2>
+              <span class="card-pill" id="ov-last-call-count">–</span>
+            </header>
+            <div class="table-wrap">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Caller</th>
+                    <th>Reason</th>
+                    <th>Arrival date</th>
+                    <th>Outcome</th>
+                  </tr>
+                </thead>
+                <tbody id="ov-calls-body">
+                  <tr><td colspan="4" class="table-empty">Loading…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- RESERVATIONS VIEW -->
+      <section class="view" id="view-reservations">
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h2>All reservations</h2>
+              <p class="card-subtitle">
+                Pulled directly from your Supabase <code>reservations</code> table (configurable).
+              </p>
+            </div>
+            <div class="pill-group">
+              <span class="pill pill-muted" id="res-count-pill">0 reservations</span>
+              <span class="pill pill-muted" id="res-sum-pill">$0 total</span>
+            </div>
+          </header>
+
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Guest</th>
+                  <th>Arrival</th>
+                  <th>Nights</th>
+                  <th>Room</th>
+                  <th>Guests</th>
+                  <th>Pets</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="res-table-body">
+                <tr><td colspan="7" class="table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <!-- CALLS VIEW -->
+      <section class="view" id="view-calls">
+        <article class="card">
+          <header class="card-header">
+            <div>
+              <h2>AI calls & outcomes</h2>
+              <p class="card-subtitle">
+                Metadata saved from NightShift Pro, including sentiment and outcome.
+              </p>
+            </div>
+            <div class="pill-group">
+              <span class="pill pill-muted" id="calls-count-pill">0 calls</span>
+              <span class="pill pill-muted" id="calls-positive-pill">–% positive</span>
+            </div>
+          </header>
+
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Caller</th>
+                  <th>Reason</th>
+                  <th>Arrival</th>
+                  <th>Sentiment</th>
+                  <th>Outcome</th>
+                </tr>
+              </thead>
+              <tbody id="calls-table-body">
+                <tr><td colspan="5" class="table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </article>
+      </section>
+
+      <!-- SETTINGS VIEW -->
+      <section class="view" id="view-settings">
+        <article class="card">
+          <header class="card-header">
+            <h2>Dashboard settings</h2>
+          </header>
+          <div class="settings-grid">
+            <div class="settings-block">
+              <h3>Supabase connection</h3>
+              <p class="card-subtitle">
+                Update <code>supabase-client.js</code> with your project URL and anon key.
+              </p>
+              <ul class="settings-list">
+                <li><code>SUPABASE_URL</code> – your project URL</li>
+                <li><code>SUPABASE_ANON_KEY</code> – anon public key</li>
+              </ul>
+            </div>
+
+            <div class="settings-block">
+              <h3>Table names</h3>
+              <p class="card-subtitle">
+                Edit <code>dashboard.js</code> and set the exact table names.
+              </p>
+              <ul class="settings-list">
+                <li><code>TABLES.reservations</code> – e.g. <code>"reservations"</code></li>
+                <li><code>TABLES.calls</code> – e.g. <code>"public_call_metadata"</code></li>
+              </ul>
+            </div>
+
+            <div class="settings-block">
+              <h3>Safety reminder</h3>
+              <p class="card-subtitle">
+                Make sure Supabase Row Level Security (RLS) is configured the way you want before sharing this dashboard.
+              </p>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="supabase-client.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
